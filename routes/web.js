@@ -6,6 +6,7 @@ const auth = require('../app/http/middleware/auth')
 const admin = require('../app/http/middleware/admin')
 const orderController = require('../app/http/controllers/customers/orderController')
 const adminOrderController = require('../app/http/controllers/admin/orderController')
+const statusController = require('../app/http/controllers/admin/statusController')
 
 function initRoutes(app) {
     homeController().index
@@ -25,11 +26,14 @@ function initRoutes(app) {
     app.get('/register',guest, authController().register)
     app.post('/register',authController().postRegister)
 
-    app.post('/orders',auth,orderController().store)
-    app.get('/customer/orders',auth,orderController().index)
+    app.post('/orders',orderController().store)
+    app.get('/customer/orders',orderController().index)
+    app.get('/customer/orders/:id',orderController().show)
 
     //admin routes
     app.get('/admin/orders',admin,adminOrderController().index)
+
+    app.post('/admin/order/status',admin,statusController().update)
 
 
 

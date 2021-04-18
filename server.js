@@ -10,6 +10,7 @@ const flash = require('express-flash')
 var MongoDBStore = require('connect-mongodb-session')(session);
 const brcypt = require('bcrypt')
 const passport = require('passport')
+const Emitter = require('events')
 const PORT = process.env.PORT || 3000
 
 //Databse Connection
@@ -29,6 +30,9 @@ var store = new MongoDBStore({
     collection: 'mySessions'
   });
 
+  //Event Emitter
+const eventEmitter = new Emitter()
+app.set('eventEmitter',eventEmitter)
 
 
 //Session Config
@@ -70,6 +74,27 @@ app.set('view engine','ejs')
 
 require('./routes/web')(app)
 
-app.listen(3000,() => {
+const server = app.listen(3000,() => {
     console.log(`Server is listening at ${PORT}`);
+})
+
+
+//Socket
+
+const io = require('socket.io')(server)
+io.on('connection',(socket) => {
+    //Join
+    console.log(socket.id)
+    socket.on('join',(roomName) => {
+        console.log(roomName)
+        socket.join(roomName)
+    })
+})
+
+eventEmitter.on('orderUpdated',(data) => {
+    io.to(`order_${data.id}`).emit('orderUpdated',data)
+})
+
+eventEmitter.on('orderPlaced',(data) => {
+    io.to('adminRoom').emit('orderPlaced',data)
 })
